@@ -38,6 +38,10 @@ app.post('/api/messages', async (req, res) => {
   res.status(201).json(data[0]);
 });
 
-app.listen(PORT, () => {
-  console.log(`Guestbook running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Guestbook running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

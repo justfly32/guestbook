@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>방명록</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; padding: 2rem; }
+    .container { max-width: 600px; margin: auto; }
+    h1 { text-align: center; margin-bottom: 1.5rem; }
+    form { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 2rem; }
+    input, textarea { padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    button { padding: 0.75rem; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    .message { background: #fff; padding: 1rem; border-radius: 6px; margin-bottom: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .message strong { font-size: 0.9rem; }
+    .message small { color: #666; font-size: 0.8rem; }
+    .message p { margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📖 방명록</h1>
+    <form id="form">
+      <input type="text" id="name" placeholder="이름" required />
+      <textarea id="message" placeholder="메시지를 남겨주세요" rows="3" required></textarea>
+      <button type="submit">남기기</button>
+    </form>
+    <div id="messages"></div>
+  </div>
+  <script>
+    const form = document.getElementById('form');
+    const messagesDiv = document.getElementById('messages');
+
+    async function loadMessages() {
+      const res = await fetch('/api/messages');
+      const messages = await res.json();
+      messagesDiv.innerHTML = messages.map(m => `
+        <div class="message">
+          <strong>${escapeHtml(m.name)}</strong>
+          <small>${new Date(m.created_at).toLocaleString('ko-KR')}</small>
+          <p>${escapeHtml(m.message)}</p>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const message = document.getElementById('message').value;
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, message })
+      });
+      form.reset();
+      loadMessages();
+    });
+
+    loadMessages();
+  </script>
+</body>
+</html>
